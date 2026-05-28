@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iterative Arithmetic Pattern Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #111111;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2e2e2e;
+    --border-light: #383838;
+    --text: #f0f0f0;
+    --text-muted: #888888;
+    --text-dim: #555555;
+    --accent: #e8e8e8;
+    --accent-red: #e05a4e;
+    --accent-blue: #5b9bd5;
+    --radius: 10px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-weight: 300;
+  }
+
+  .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 56px 48px 80px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    margin-bottom: 56px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 48px;
+  }
+
+  .eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: clamp(42px, 6vw, 72px);
+    line-height: 1.0;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .description {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    max-width: 520px;
+    font-weight: 300;
+  }
+
+  .formula-inline {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 440px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .page { padding: 32px 24px 60px; }
+  }
+
+  /* ── LEFT PANEL ── */
+  .left-panel {}
+
+  /* Toggle */
+  .tab-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 4px;
+    margin-bottom: 28px;
+  }
+
+  .tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 50px;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: #111;
+  }
+
+  .tab-btn:not(.active):hover {
+    color: var(--text);
+  }
+
+  /* Section label */
+  .field-label {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Inputs */
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .input-group label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .input-group input,
+  .input-group select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 400;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .input-group input:focus,
+  .input-group select:focus {
+    border-color: var(--border-light);
+  }
+
+  .input-group input::-webkit-inner-spin-button,
+  .input-group input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  /* Hint */
+  .field-hint {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* Error */
+  .error-msg {
+    font-size: 12px;
+    color: var(--accent-red);
+    margin-bottom: 12px;
+    display: none;
+    padding: 8px 12px;
+    background: rgba(224,90,78,0.08);
+    border: 1px solid rgba(224,90,78,0.2);
+    border-radius: 6px;
+  }
+
+  /* Analyze button */
+  .btn-analyze {
+    width: 100%;
+    background: var(--text);
+    color: #111;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 15px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: 0.02em;
+    transition: opacity 0.15s;
+    margin-top: 20px;
+  }
+
+  .btn-analyze:hover { opacity: 0.88; }
+  .btn-analyze:active { opacity: 0.75; }
+
+  .btn-analyze svg {
+    width: 14px; height: 14px;
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel { display: none; }
+  .right-panel.visible { display: block; }
+
+  .results-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .results-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .results-meta {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Stat cards */
+  .stat-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 18px 16px;
+  }
+
+  .stat-card-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-card-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .stat-card-value.accent { color: var(--accent-red); }
+  .stat-card-value.blue { color: var(--accent-blue); }
+
+  /* Pattern output */
+  .pattern-container {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .pattern-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pattern-toolbar-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .btn-copy {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-copy:hover { border-color: var(--border-light); color: var(--text); }
+  .btn-copy.copied { border-color: #4caf7d; color: #4caf7d; }
+
+  .pattern-scroll {
+    overflow-x: auto;
+    padding: 20px 20px 24px;
+  }
+
+  .pattern-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 4px 0;
+    opacity: 0;
+    transform: translateY(5px);
+    animation: rowIn 0.25s forwards;
+    white-space: nowrap;
+    border-radius: 4px;
+    transition: background 0.1s;
+  }
+
+  .pattern-row:hover { background: rgba(255,255,255,0.03); }
+
+  @keyframes rowIn {
+    to { opacity: 1; transform: none; }
+  }
+
+  .row-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    width: 24px;
+    text-align: right;
+    margin-right: 16px;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  .row-pad { display: inline-block; flex-shrink: 0; }
+
+  .row-content {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 400;
+    line-height: 1.8;
+  }
+
+  .n-val {
+    color: var(--text);
+    transition: color 0.1s;
+  }
+
+  .pattern-row:hover .n-val { color: var(--accent-blue); }
+
+  .n-sep { color: var(--text-dim); }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 2px;
+  }
+
+  /* scrollbar */
+  .pattern-scroll::-webkit-scrollbar { height: 3px; }
+  .pattern-scroll::-webkit-scrollbar-track { background: transparent; }
+  .pattern-scroll::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <div class="eyebrow">Mathematical Sequence</div>
+    <h1>Iterative Arithmetic<br>Pattern Generator</h1>
+    <p class="description">
+      Build cascading number sequences using
+      <span class="formula-inline">aₙ = aₙ₋₁ + r</span> or
+      <span class="formula-inline">aₙ = aₙ₋₁ × r</span>.
+      Configure a starting point, rate, and depth — then generate.
+    </p>
+  </header>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+
+    <!-- LEFT: Controls -->
+    <div class="left-panel">
+
+      <!-- Operation toggle -->
+      <div class="tab-toggle">
+        <button class="tab-btn active" id="btn-add" onclick="setOp(0)">Addition</button>
+        <button class="tab-btn" id="btn-mul" onclick="setOp(1)">Multiplication</button>
+      </div>
+
+      <!-- Inputs -->
+      <div class="inputs-grid">
+        <div class="input-group">
+          <label>Starting number</label>
+          <input type="number" id="startingNum" value="1">
+          <div class="field-hint">First value in every row</div>
+        </div>
+        <div class="input-group">
+          <label>Rate of change</label>
+          <input type="number" id="rateOfChange" value="2">
+          <div class="field-hint">Step for the initial row</div>
+        </div>
+        <div class="input-group">
+          <label>Initial length</label>
+          <input type="number" id="startingAmountOfNumbers" value="4" min="1">
+          <div class="field-hint">Numbers in row 1</div>
+        </div>
+        <div class="input-group">
+          <label>Sequence rounds</label>
+          <input type="number" id="sequenceRounds" value="5" min="1" max="12">
+          <div class="field-hint">Rows to generate (max 12)</div>
+        </div>
+      </div>
+
+      <div id="error-msg" class="error-msg"></div>
+
+      <button class="btn-analyze" onclick="generate()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <polygon points="3,2 13,8 3,14" fill="currentColor" stroke="none"/>
+        </svg>
+        Generate
+      </button>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div class="right-panel" id="right-panel">
+
+      <div class="results-header">
+        <div class="results-title">Results</div>
+        <div class="results-meta" id="results-meta"></div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="stat-card-label">Numbers</div>
+          <div class="stat-card-value" id="stat-total">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Final row</div>
+          <div class="stat-card-value blue" id="stat-final">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Max value</div>
+          <div class="stat-card-value accent" id="stat-max">—</div>
+        </div>
+      </div>
+
+      <!-- Pattern display -->
+      <div class="pattern-container">
+        <div class="pattern-toolbar">
+          <span class="pattern-toolbar-label">Sequence output</span>
+          <button class="btn-copy" id="copy-btn" onclick="copyOutput()">Copy</button>
+        </div>
+        <div class="pattern-scroll">
+          <div id="pattern-display"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let chooseArithmetic = 0;
+
+  function setOp(val) {
+    chooseArithmetic = val;
+    document.getElementById('btn-add').classList.toggle('active', val === 0);
+    document.getElementById('btn-mul').classList.toggle('active', val === 1);
+  }
+
+  function getInt(id) {
+    return parseInt(document.getElementById(id).value, 10);
+  }
+
+  function createInitialList(startingNum, rateOfChange, count) {
+    let list = [startingNum], cur = startingNum;
+    for (let i = 0; i < count - 1; i++) {
+      cur = chooseArithmetic === 0 ? cur + rateOfChange : cur * rateOfChange;
+      list.push(cur);
+    }
+    return list;
+  }
+
+  function calculateNewList(prev, startingNum) {
+    let list = [], val = startingNum;
+    for (let j = 0; j < prev.length; j++) {
+      list.push(val);
+      val = chooseArithmetic === 0 ? val + prev[j] : val * prev[j];
+    }
+    list.push(val);
+    return list;
+  }
+
+  function fmt(n) {
+    if (!isFinite(n)) return '∞';
+    if (Math.abs(n) >= 1e12) return n.toExponential(2);
+    return n.toLocaleString();
+  }
+
+  function generate() {
+    const errEl = document.getElementById('error-msg');
+    errEl.style.display = 'none';
+
+    const startingNum = getInt('startingNum');
+    const rateOfChange = getInt('rateOfChange');
+    const count = getInt('startingAmountOfNumbers');
+    const rounds = getInt('sequenceRounds');
+
+    if ([startingNum, rateOfChange, count, rounds].some(isNaN)) {
+      errEl.textContent = 'All fields require valid integers.'; errEl.style.display = 'block'; return;
+    }
+    if (count < 1) { errEl.textContent = 'Initial length must be at least 1.'; errEl.style.display = 'block'; return; }
+    if (rounds < 1 || rounds > 12) { errEl.textContent = 'Rounds must be between 1 and 12.'; errEl.style.display = 'block'; return; }
+
+    // Build sequences
+    const mainList = [createInitialList(startingNum, rateOfChange, count)];
+    for (let i = 0; i < rounds - 1; i++) mainList.push(calculateNewList(mainList[mainList.length - 1], startingNum));
+
+    // Stats
+    const allNums = mainList.flat().filter(isFinite);
+    const maxVal = Math.max(...allNums.map(Math.abs));
+    document.getElementById('stat-total').textContent = allNums.length.toLocaleString();
+    document.getElementById('stat-final').textContent = mainList[mainList.length - 1].length;
+    document.getElementById('stat-max').textContent = maxVal >= 1e9 ? maxVal.toExponential(2) : maxVal.toLocaleString();
+    document.getElementById('results-meta').textContent =
+      `${allNums.length} numbers · ${chooseArithmetic === 0 ? 'addition' : 'multiplication'} · r = ${rateOfChange}`;
+
+    // Render rows
+    const display = document.getElementById('pattern-display');
+    display.innerHTML = '';
+
+    mainList.forEach((row, idx) => {
+      const indent = (rounds - 1 - idx) * 18;
+      const div = document.createElement('div');
+      div.className = 'pattern-row';
+      div.style.animationDelay = `${idx * 45}ms`;
+
+      const numEl = document.createElement('span');
+      numEl.className = 'row-num';
+      numEl.textContent = idx + 1;
+
+      const padEl = document.createElement('span');
+      padEl.className = 'row-pad';
+      padEl.style.width = `${indent}px`;
+
+      const content = document.createElement('span');
+      content.className = 'row-content';
+      content.innerHTML = row.map((n, i) =>
+        `<span class="n-val">${fmt(n)}</span>${i < row.length - 1 ? '<span class="n-sep">, </span>' : ''}`
+      ).join('');
+
+      div.appendChild(numEl);
+      div.appendChild(padEl);
+      div.appendChild(content);
+      display.appendChild(div);
+    });
+
+    document.getElementById('right-panel').classList.add('visible');
+    document.getElementById('copy-btn').textContent = 'Copy';
+    document.getElementById('copy-btn').classList.remove('copied');
+  }
+
+  function copyOutput() {
+    const rows = document.querySelectorAll('.pattern-row');
+    let text = '';
+    rows.forEach(row => {
+      const pad = row.querySelector('.row-pad');
+      const vals = row.querySelectorAll('.n-val');
+      const w = Math.round(parseInt(pad.style.width || '0') / 18);
+      text += ' '.repeat(w * 2) + Array.from(vals).map(v => v.textContent).join(', ') + '\n';
+    });
+    navigator.clipboard.writeText(text.trim()).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
+  generate();
+</script>
+</body>
+</html>
